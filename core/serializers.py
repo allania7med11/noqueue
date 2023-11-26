@@ -25,14 +25,30 @@ class QueueCitationSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='slug'  # Assuming the slug field in your Queue model is named 'slug'
     )
+    queue_write_only = serializers.CharField(
+        write_only=True
+    )
+    state = serializers.CharField(read_only=True)
 
     class Meta:
         model = QueueCitation
-        fields = ["queue", "number", "state"]
+        fields = ["queue", "number", "state", "queue_write_only"]
+        
+    def validate_queue_write_only(self, value):
+        """
+        Validate that the queue with the specified slug exists.
+        """
+        try:
+            queue = Queue.objects.get(slug=value)
+        except Queue.DoesNotExist:
+            raise serializers.ValidationError("Queue with this slug does not exist.")
+        
+        return queue
 
     def create(self, validated_data):
         user = self.context["request"].user
-        queue = validated_data["queue"]
+        queue = validated_data.pop("queue_write_only", None)
+        validated_data["queue"] = queue
         existing_citation = QueueCitation.objects.filter(
             created_by=user, queue=queue, state__in=["NS", "SomeOtherState"]
         ).first()
