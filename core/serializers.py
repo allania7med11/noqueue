@@ -53,7 +53,7 @@ class QueueCitationSerializer(serializers.ModelSerializer):
         try:
             queue = Queue.objects.get(slug=value)
         except Queue.DoesNotExist:
-            raise serializers.ValidationError("Queue with this slug does not exist.")
+            raise serializers.ValidationError("here is no queue with the specified title.")
         
         return queue
 
@@ -65,7 +65,7 @@ class QueueCitationSerializer(serializers.ModelSerializer):
             created_by=user, queue=queue, state__in=["NS", "SomeOtherState"]
         ).first()
         if existing_citation:
-            raise ValidationError("A QueueCitation with the same user, queue, and state not served already exists.")
+            raise ValidationError("You have already created a ticket for this queue")
 
         last_citation = QueueCitation.objects.filter(queue=queue).order_by('-id').first()
         if last_citation:
