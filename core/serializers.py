@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Queue, QueueCitation
 from django.utils.text import slugify
+from rest_framework.exceptions import ValidationError
 
 class QueueSerializer(serializers.ModelSerializer):
     slug = serializers.SlugField(read_only=True) 
@@ -18,10 +19,27 @@ class QueueSerializer(serializers.ModelSerializer):
 
 
 class QueueCitationSerializer(serializers.ModelSerializer):
+    number = serializers.IntegerField(read_only=True)
+    state = serializers.CharField(read_only=True)
+
     class Meta:
         model = QueueCitation
         fields = ["queue", "number", "state"]
-    
+
     def create(self, validated_data):
-        validated_data["created_by"] = self.context["request"].user
-        return super().create(validated_data)
+        user = self.context["request"].user
+        queue = validated_data["queue"]
+        existing_citation = QueueCitation.objects.filter(
+            created_by=user, queue=queue, state__in=["NS", "SomeOtherState"]
+        ).first()
+        if existing_citation:
+            raise ValidationError("A QueueCitation with the same user, queue, and state not served already exists.")
+
+        last_citation = QueueCitation.objects.filter(queue=queue).order_by('-id').first()
+        if last_citation:
+            validated_data["number"] = last_citation.number + 1
+        else:
+            validated_data["number"] = 1
+        validated_data["created_by"] = user
+        queue_citation = QueueCitation.objects.create(**validated_data)
+        return queue_citation
