@@ -1,11 +1,14 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from .models import Queue, QueueCitation
-from .serializers import QueueSerializer, QueueCitationSerializer
+from .serializers import QueueSerializer, QueueCitationSerializer, UserSerializer
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework import status
+
+class UserRegistrationView(generics.CreateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = []
 
 class QueueListCreateView(generics.ListCreateAPIView):
     serializer_class = QueueSerializer
