@@ -31,6 +31,16 @@ class CurrentLineTicketView(APIView):
             return Response(serializer.data)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
+    def post(self, request, queue):
+        queryset = QueueCitation.objects.filter(queue__slug=queue, state="NS",created_by=self.request.user)  # You can customize this condition based on your state choices
+        last_not_served_citation = queryset.order_by('id').first()
+        if last_not_served_citation:
+            serializer = QueueCitationSerializer(last_not_served_citation)
+            last_not_served_citation.state = "SV"
+            last_not_served_citation.save()
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class QueueCitationListCreateView(generics.ListCreateAPIView):
