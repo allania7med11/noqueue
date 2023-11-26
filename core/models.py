@@ -9,7 +9,7 @@ class Queue(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return self.slug
 
 class QueueCitation(models.Model):
     queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
@@ -18,7 +18,7 @@ class QueueCitation(models.Model):
         ('NS', 'Not Served'),
         ('SV', 'Served'),
     ]
-    state = models.CharField(max_length=2, choices=state_choices)
+    state = models.CharField(max_length=2, choices=state_choices, default="NS")
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):

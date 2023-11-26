@@ -21,6 +21,10 @@ class QueueSerializer(serializers.ModelSerializer):
 class QueueCitationSerializer(serializers.ModelSerializer):
     number = serializers.IntegerField(read_only=True)
     state = serializers.CharField(read_only=True)
+    queue = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='slug'  # Assuming the slug field in your Queue model is named 'slug'
+    )
 
     class Meta:
         model = QueueCitation
